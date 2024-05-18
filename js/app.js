@@ -148,7 +148,7 @@ function actualizarResumen() {
     const contenido = document.querySelector('#resumen .contenido');
 
     const resumen = document.createElement('DIV');
-    resumen.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+    resumen.classList.add('col-md-6', 'card', 'py-2', 'px-3', 'shadow');
 
     //Información de la mesa
     const mesa = document.createElement('P');
@@ -181,12 +181,16 @@ function actualizarResumen() {
     hora.appendChild(horaSpan);
 
     //Agregar a la seccion de resumen
+    resumen.appendChild(heading);
     resumen.appendChild(mesa);
     resumen.appendChild(hora);
-    resumen.appendChild(heading);
     resumen.appendChild(grupoListaPedido);
 
     contenido.appendChild(resumen);
+
+    // Mostrar formulario de propinas
+    formularioPropinas();
+
 }
 
 function mostrarInformacionPedido() {
@@ -201,6 +205,7 @@ function mostrarInformacionPedido() {
         const lista = document.createElement('LI');
         lista.classList.add('list-group-item');
 
+        //TODO: CREAR FUNCION PARA AGREGAR ELEMENTOS HTML AL PEDIDO
         //Nombre item pedido
         const nombrElement = document.createElement('H4');
         nombrElement.classList.add('my-4');
@@ -283,7 +288,7 @@ function eliminarItemPedido(id) {
     //limpiar el codigo HTML previo
     limpiarHTML();
 
-    //TODO: pasar a funcion
+    //TODO: PASAR A FUNCION
     if(cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
     else mensajePedidoVacio(); // si no hay items en el pedido se muestra el mensaje de pedido vacio
 
@@ -295,11 +300,63 @@ function eliminarItemPedido(id) {
 }
 
 function mensajePedidoVacio() {
-    const contenido = document.querySelector('#resumen .contenido');
+    const contenido = document.querySelector('#resumen .contenido'); //TODO: poner como variable global
 
     const texto = document.createElement('P');
     texto.classList.add('text-center');
     texto.textContent = 'Añade los items del pedido';
 
     contenido.appendChild(texto);
+}
+
+function formularioPropinas() {
+
+    const contenido = document.querySelector('#resumen .contenido');
+
+    const formulario = document.createElement('DIV');
+    formulario.classList.add('col-md-6', 'formulario');
+
+    const divFormulario = document.createElement('DIV');
+    divFormulario.classList.add('card', 'py-2', 'px-3', 'shadow');
+
+    const heading = document.createElement('H3');
+    heading.classList.add('my-4', 'text-center');
+    heading.textContent = 'Propina';
+
+    //Radio buttons de propinas
+    const radioPropina10 = crearOpcionPropina('10');
+    const radioPropina25 = crearOpcionPropina('25');
+    const radioPropina50 = crearOpcionPropina('50');
+
+    divFormulario.appendChild(heading);
+    divFormulario.appendChild(radioPropina10);
+    divFormulario.appendChild(radioPropina25);
+    divFormulario.appendChild(radioPropina50);
+    formulario.appendChild(divFormulario);
+
+    contenido.appendChild(formulario);
+
+}
+
+//crea radio buttons para seleccionar propinas
+function crearOpcionPropina(valorPropina) {
+
+    const radioButton = document.createElement('INPUT');
+    radioButton.type = 'radio';
+    radioButton.name = 'propina';
+    radioButton.value = valorPropina;
+    radioButton.classList.add('form-check-input');
+
+    const radioLabel = document.createElement('LABEL');
+    radioLabel.textContent = `${valorPropina}%`;
+    radioLabel.classList.add('form-check-label');
+
+    const radioDiv = document.createElement('DIV');
+    radioDiv.classList.add('form-check');
+
+    radioDiv.appendChild(radioButton);
+    radioDiv.appendChild(radioLabel);
+
+    return radioDiv;
+
 }
