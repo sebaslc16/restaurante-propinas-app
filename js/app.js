@@ -10,49 +10,105 @@ const categorias = {
     3: 'Postres'
 };
 
+let platillosDisponibles = [];
+
+let totalPedidoGlobal = 0;
+
 const btnGuardarCliente = document.querySelector('#guardar-cliente');
 btnGuardarCliente.addEventListener('click', guardarCliente);
 
-function guardarCliente() {
-    const mesa = document.querySelector('#mesa').value;
-    const hora = document.querySelector('#hora').value;
+const btnCerrarOrden = document.querySelector('#cerrar-orden');
+btnCerrarOrden.addEventListener('click', cerrarOrden);
 
-    //Validar si hay campos vacios
-    const camposVacios = [mesa, hora].some(campo => campo === '');
-
-    if (camposVacios) {
-        //Verificar si la alerta existe
-        const alertaExiste = document.querySelector('.invalid-feedback');
-
-        //TODO: function para agregar alertas
-        //Se inserta la alerta si no existe
-        if (!alertaExiste) {
-            const alerta = document.createElement('DIV');
-            alerta.classList.add('invalid-feedback', 'd-block', 'text-center');
-            alerta.textContent = 'Todos los campos son obligatorios';
-            document.querySelector('.modal-body form').appendChild(alerta);
-
-            setTimeout(() => { // se remueve la alerta a los 3 segundos
-                alerta.remove();
-            }, 3000);
+//cerrar orden
+function cerrarOrden() {
+    if (totalPedidoGlobal === 0) {
+        cliente = {
+            mesa: '',
+            hora: '',
+            pedido: []
         }
-        return;
+        limpiarReiniciarResumen();
+        window.alert(`Orden cerrada sin total`);
+    } else {
+        cliente = {
+            mesa: '',
+            hora: '',
+            pedido: []
+        }
+
+        limpiarReiniciarResumen();
+        window.alert('Orden cerrada: TOTAL: $' + totalPedidoGlobal);
+        totalPedidoGlobal = 0;
     }
 
-    //Asignar datos del formulario al cliente con spreed operator para crear una copia y asignarle los datos
-    cliente = { ...cliente, mesa, hora };
+    mensajePedidoVacio();
+}
 
-    //Ocular Modal
-    const modalFormulario = document.querySelector('#formulario');
-    const modalBootstrap = bootstrap.Modal.getInstance(modalFormulario);
-    modalBootstrap.hide();
+function limpiarReiniciarResumen() {
+    //Limpiar y ocultar secciones de resumen
+    limpiarHTML();
+    const seccionResumen = document.querySelector('#resumen');
+    seccionResumen.classList.add('d-none');
+    const seccionPlatillos = document.querySelector('#platillos');
+    seccionPlatillos.classList.add('d-none');
+    document.querySelector('#mesa').value = '';
+    document.querySelector('#hora').value = '';
 
-    //Mostrar secciones ocultas
-    mostrarSecciones();
+    platillosDisponibles.forEach(platillo => {
+        //Se resetea la cantidad a 0 en el formulario de los platillos
+        const itemId = `#producto-${platillo.id}`;
+        const inputItem = document.querySelector(itemId);
+        inputItem.value = 0;
+    });
+}
 
-    //Obtener platillos de la API json-server que creamos
-    obtenerPlatillos();
+function guardarCliente() {
 
+    if (cliente.mesa !== '') {
+        window.alert('Cierra la orden activa');
+    }
+
+    else {
+        const mesa = document.querySelector('#mesa').value;
+        const hora = document.querySelector('#hora').value;
+
+        //Validar si hay campos vacios
+        const camposVacios = [mesa, hora].some(campo => campo === '');
+
+        if (camposVacios) {
+            //Verificar si la alerta existe
+            const alertaExiste = document.querySelector('.invalid-feedback');
+
+            //TODO: function para agregar alertas
+            //Se inserta la alerta si no existe
+            if (!alertaExiste) {
+                const alerta = document.createElement('DIV');
+                alerta.classList.add('invalid-feedback', 'd-block', 'text-center');
+                alerta.textContent = 'Todos los campos son obligatorios';
+                document.querySelector('.modal-body form').appendChild(alerta);
+
+                setTimeout(() => { // se remueve la alerta a los 3 segundos
+                    alerta.remove();
+                }, 3000);
+            }
+            return;
+        }
+
+        //Asignar datos del formulario al cliente con spreed operator para crear una copia y asignarle los datos
+        cliente = { ...cliente, mesa, hora };
+
+        //Ocular Modal
+        const modalFormulario = document.querySelector('#formulario');
+        const modalBootstrap = bootstrap.Modal.getInstance(modalFormulario);
+        modalBootstrap.hide();
+
+        //Mostrar secciones ocultas
+        mostrarSecciones();
+
+        //Obtener platillos de la API json-server que creamos, se consulta una sola vez
+        if (!platillosDisponibles.length) obtenerPlatillos();
+    }
 }
 
 function mostrarSecciones() {
@@ -65,7 +121,10 @@ function obtenerPlatillos() {
 
     fetch(url)
         .then(respuesta => respuesta.json())
-        .then(platillos => mostrarPlatillos(platillos))
+        .then(platillos => {
+            platillosDisponibles = platillos;
+            mostrarPlatillos(platillosDisponibles)
+        })
         .catch(error => console.log('Error en consulta: ' + error));
 }
 
@@ -138,9 +197,9 @@ function agregarPlatillo(producto) {
 
     limpiarHTML();
 
-    if(cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
+    if (cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
     else mensajePedidoVacio(); // si no hay items en el pedido se muestra el mensaje de pedido vacio
-    
+
 }
 
 function actualizarResumen() {
@@ -148,7 +207,7 @@ function actualizarResumen() {
     const contenido = document.querySelector('#resumen .contenido');
 
     const resumen = document.createElement('DIV');
-    resumen.classList.add('col-md-6', 'card', 'py-2', 'px-3', 'shadow');
+    resumen.classList.add('col-md-6', 'card', 'py-2', '-3', 'shadow');
 
     //Información de la mesa
     const mesa = document.createElement('P');
@@ -289,8 +348,10 @@ function eliminarItemPedido(id) {
     limpiarHTML();
 
     //TODO: PASAR A FUNCION
-    if(cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
+    if (cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
     else mensajePedidoVacio(); // si no hay items en el pedido se muestra el mensaje de pedido vacio
+
+    totalPedidoGlobal = 0;
 
     //Se resetea la cantidad a 0 en el formulario del item eliminado
     const productoEliminado = `#producto-${id}`;
@@ -321,21 +382,22 @@ function formularioPropinas() {
 
     const heading = document.createElement('H3');
     heading.classList.add('my-4', 'text-center');
-    heading.textContent = 'Propina';
+    heading.textContent = 'Total y propina';
 
     //Radio buttons de propinas
+    const radioPropina0 = crearOpcionPropina('0');
     const radioPropina10 = crearOpcionPropina('10');
     const radioPropina25 = crearOpcionPropina('25');
     const radioPropina50 = crearOpcionPropina('50');
 
     divFormulario.appendChild(heading);
+    divFormulario.appendChild(radioPropina0);
     divFormulario.appendChild(radioPropina10);
     divFormulario.appendChild(radioPropina25);
     divFormulario.appendChild(radioPropina50);
     formulario.appendChild(divFormulario);
 
     contenido.appendChild(formulario);
-
 }
 
 //crea radio buttons para seleccionar propinas
@@ -346,6 +408,7 @@ function crearOpcionPropina(valorPropina) {
     radioButton.name = 'propina';
     radioButton.value = valorPropina;
     radioButton.classList.add('form-check-input');
+    radioButton.onclick = calcularPropina; // accion de radio button para calcular
 
     const radioLabel = document.createElement('LABEL');
     radioLabel.textContent = `${valorPropina}%`;
@@ -359,4 +422,72 @@ function crearOpcionPropina(valorPropina) {
 
     return radioDiv;
 
+}
+
+function calcularPropina() {
+
+    const { pedido } = cliente;
+    let subTotal = 0;
+
+    //Calcular el subtotal a pagar sin propina
+    pedido.forEach(item => subTotal += item.cantidad * item.precio);
+
+    //Seleccionar el radio button con la propina del cliente
+    const propinaSeleccionada = document.querySelector('[name="propina"]:checked').value;
+
+    //Calcular la propina
+    const propina = parseInt((subTotal * parseInt(propinaSeleccionada)) / 100);
+
+    //Calcular total a pagar con propina
+    const totalPedido = subTotal + propina;
+    totalPedidoGlobal = totalPedido;
+
+    mostrarTotalPedido(subTotal, totalPedido, propina);
+}
+
+function mostrarTotalPedido(subTotal, totalPedido, propina) {
+
+    const divTotales = document.createElement('DIV');
+    divTotales.classList.add('total-pagar', 'my-5');
+
+    //Subtotal 
+    const subTotalParrafo = agregarElementosTotalPedido('P', ['fs-2', 'fw-bold', 'mt-2'], 'Subtotal Consumo: ');
+    const subTotalSpan = agregarElementosTotalPedido('SPAN', ['fw-normal'], `$${subTotal}`);
+    subTotalParrafo.appendChild(subTotalSpan);
+
+    //Propina
+    const propinaParrafo = agregarElementosTotalPedido('P', ['fs-2', 'fw-bold', 'mt-2'], 'Propina: ');
+    const propinaSpan = agregarElementosTotalPedido('SPAN', ['fw-normal'], `$${propina}`);
+    propinaParrafo.appendChild(propinaSpan);
+
+    //Total a pagar
+    const totalParrafo = agregarElementosTotalPedido('P', ['fs-2', 'fw-bold', 'mt-2'], 'Total a pagar: ');
+    const totalSpan = agregarElementosTotalPedido('SPAN', ['fw-normal'], `$${totalPedido}`);
+    totalParrafo.appendChild(totalSpan);
+
+    //Eliminar contenido anterior
+    const totalPagarDiv = document.querySelector('.total-pagar');
+    if (totalPagarDiv) {
+        totalPagarDiv.remove();
+    }
+
+    divTotales.appendChild(subTotalParrafo);
+    divTotales.appendChild(propinaParrafo);
+    divTotales.appendChild(totalParrafo);
+
+    const formulario = document.querySelector('.formulario > div');
+    formulario.appendChild(divTotales);
+
+}
+
+function agregarElementosTotalPedido(elemento, clases, contenidoTexto) {
+
+    const elementoAgregar = document.createElement(elemento);
+    for (let i = 0; i < clases.length; i++) {
+        const clase = clases[i];
+        elementoAgregar.classList.add(clase);
+    }
+    elementoAgregar.textContent = contenidoTexto;
+
+    return elementoAgregar;
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Propinas y Consumos</title>
+    <title>Restaurante</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- <link rel="stylesheet" href="css/app.css"> -->
 </head>
@@ -13,12 +13,12 @@
 <body>
 
     <header class="py-4 bg-primary">
-        <h1 class="text-center text-white fs-3">Calculadora de Consumos y Propinas</h1>
+        <h1 class="text-center text-white fs-3">Restaurante</h1>
     </header>
 
     <div class="d-flex mt-4 justify-content-center">
         <button data-bs-toggle="modal" data-bs-target="#formulario" type="button" class="btn btn-success">Nueva
-            Orden</button>
+            orden</button>
     </div>
 
 
@@ -30,7 +30,11 @@
 
 
     <section id="resumen" class="resumen bg-light container mt-5 p-4 d-none">
-        <h2 class="text-center my-4">Resumen De Consumo </h2>
+        <h2 class="text-center my-4">Resumen de pedido </h2>
+
+        <div class="d-flex mt-2 mb-2 justify-content-center">
+            <button type="button" id="cerrar-orden" class="btn btn-danger">Cerrar orden</button>
+        </div>
 
         <div class="contenido row">
             <p class="text-center">Añade los items del pedido</p>
