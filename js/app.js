@@ -138,8 +138,9 @@ function agregarPlatillo(producto) {
 
     limpiarHTML();
 
-    //Mostrar el resumen
-    actualizarResumen();
+    if(cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
+    else mensajePedidoVacio(); // si no hay items en el pedido se muestra el mensaje de pedido vacio
+    
 }
 
 function actualizarResumen() {
@@ -173,6 +174,7 @@ function actualizarResumen() {
     heading.classList.add('my-4', 'text-center');
 
     //Iterar sobre el array de pedidos
+    const grupoListaPedido = mostrarInformacionPedido();
 
     //Agregar a los elementos padre
     mesa.appendChild(mesaSpan);
@@ -182,8 +184,85 @@ function actualizarResumen() {
     resumen.appendChild(mesa);
     resumen.appendChild(hora);
     resumen.appendChild(heading);
+    resumen.appendChild(grupoListaPedido);
 
     contenido.appendChild(resumen);
+}
+
+function mostrarInformacionPedido() {
+
+    const grupo = document.createElement('UL');
+    grupo.classList.add('list-group');
+
+    const { pedido } = cliente;
+    pedido.forEach(articulo => {
+        const { nombre, cantidad, precio, id } = articulo;
+
+        const lista = document.createElement('LI');
+        lista.classList.add('list-group-item');
+
+        //Nombre item pedido
+        const nombrElement = document.createElement('H4');
+        nombrElement.classList.add('my-4');
+        nombrElement.textContent = nombre;
+
+        //Cantidad del item
+        const cantidadElement = document.createElement('P');
+        cantidadElement.classList.add('fw-bold');
+        cantidadElement.textContent = 'Cantidad: ';
+
+        const cantidadValor = document.createElement('SPAN');
+        cantidadValor.classList.add('fw-normal');
+        cantidadValor.textContent = cantidad;
+
+        //Precio del item
+        const precioElement = document.createElement('P');
+        precioElement.classList.add('fw-bold');
+        precioElement.textContent = 'Precio: $';
+
+        const precioValor = document.createElement('SPAN');
+        precioValor.classList.add('fw-normal');
+        precioValor.textContent = precio;
+
+        //Precio del item
+        const subTotalElement = document.createElement('P');
+        subTotalElement.classList.add('fw-bold');
+        subTotalElement.textContent = 'Subtotal: ';
+
+        const subTotalValor = document.createElement('SPAN');
+        subTotalValor.classList.add('fw-normal');
+        subTotalValor.textContent = calcularSubTotal(precio, cantidad);
+
+        // Boton para eliminar items del pedido
+        const btnEliminar = document.createElement('BUTTON');
+        btnEliminar.classList.add('btn', 'btn-danger');
+        btnEliminar.textContent = 'Eliminar del pedido';
+
+        //Funcion para eliminar item del pedido
+        btnEliminar.onclick = () => eliminarItemPedido(id);
+
+        //Agregar valores a sus contenedores
+        cantidadElement.appendChild(cantidadValor);
+        precioElement.appendChild(precioValor);
+        subTotalElement.appendChild(subTotalValor);
+
+        //Agregar elementos al LI
+        lista.appendChild(nombrElement);
+        lista.appendChild(cantidadElement);
+        lista.appendChild(precioElement);
+        lista.appendChild(subTotalElement);
+        lista.appendChild(btnEliminar);
+
+        //Agregar lista al grupo principal
+        grupo.appendChild(lista);
+    });
+
+    return grupo;
+
+}
+
+function calcularSubTotal(precio, cantidad) {
+    return `$ ${precio * cantidad}`;
 }
 
 function limpiarHTML() {
@@ -194,4 +273,33 @@ function limpiarHTML() {
         contenido.removeChild(contenido.firstChild);
     }
 
+}
+
+function eliminarItemPedido(id) {
+    const { pedido } = cliente;
+    const resultado = pedido.filter(item => item.id !== id);
+    cliente.pedido = [...resultado];
+
+    //limpiar el codigo HTML previo
+    limpiarHTML();
+
+    //TODO: pasar a funcion
+    if(cliente.pedido.length) actualizarResumen(); //Mostrar el resumen
+    else mensajePedidoVacio(); // si no hay items en el pedido se muestra el mensaje de pedido vacio
+
+    //Se resetea la cantidad a 0 en el formulario del item eliminado
+    const productoEliminado = `#producto-${id}`;
+    const inputEliminado = document.querySelector(productoEliminado);
+    inputEliminado.value = 0;
+
+}
+
+function mensajePedidoVacio() {
+    const contenido = document.querySelector('#resumen .contenido');
+
+    const texto = document.createElement('P');
+    texto.classList.add('text-center');
+    texto.textContent = 'Añade los items del pedido';
+
+    contenido.appendChild(texto);
 }
