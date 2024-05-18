@@ -93,10 +93,16 @@ function mostrarPlatillos(platillos) {
 
         const inputCantidad = document.createElement('INPUT');
         inputCantidad.type = 'number',
-        inputCantidad.min = 0;
+            inputCantidad.min = 0;
         inputCantidad.value = 0;
         inputCantidad.id = `producto-${platillo.id}`;
         inputCantidad.classList.add('form-control');
+
+        //Función que detecta la cantidad y el platillo que se está agregando
+        inputCantidad.onchange = function () {
+            const cantidad = parseInt(inputCantidad.value);
+            agregarPlatillo({ ...platillo, cantidad }); // se manda un objeto con la copia del platillo y la cantidad
+        }
 
         const agregar = document.createElement('DIV');
         agregar.classList.add('col-md-2');
@@ -108,5 +114,84 @@ function mostrarPlatillos(platillos) {
         row.appendChild(agregar);
         contenido.appendChild(row);
     });
+
+}
+
+function agregarPlatillo(producto) {
+
+    //Extraer el pedido actual
+    let { pedido } = cliente;
+
+    //Revisar que la antidad sea mayor a 0
+    if (producto.cantidad > 0) {
+        const existePedido = pedido.find(item => item.id === producto.id); //valida si el item ya existe en el pedido
+
+        if (existePedido) { // si ya existe se actualiza la cantidad
+            existePedido.cantidad = producto.cantidad;
+        } else {
+            cliente.pedido = [...pedido, producto];
+        }
+    } else { // si la cantidad del producto es cero y esta en el pedido se elimina
+        const nuevoResultado = cliente.pedido.filter(item => item.id !== producto.id);
+        cliente.pedido = [...nuevoResultado];
+    }
+
+    limpiarHTML();
+
+    //Mostrar el resumen
+    actualizarResumen();
+}
+
+function actualizarResumen() {
+
+    const contenido = document.querySelector('#resumen .contenido');
+
+    const resumen = document.createElement('DIV');
+    resumen.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+
+    //Información de la mesa
+    const mesa = document.createElement('P');
+    mesa.textContent = 'Mesa: ';
+    mesa.classList.add('fw-bold');
+
+    const mesaSpan = document.createElement('SPAN');
+    mesaSpan.textContent = cliente.mesa;
+    mesaSpan.classList.add('fw-normal');
+
+    //Información de la hora
+    const hora = document.createElement('P');
+    hora.textContent = 'Hora: ';
+    hora.classList.add('fw-bold');
+
+    const horaSpan = document.createElement('SPAN');
+    horaSpan.textContent = cliente.hora;
+    horaSpan.classList.add('fw-normal');
+
+    // Titulo de la seccióm
+    const heading = document.createElement('H3');
+    heading.textContent = 'Platillos consumidos';
+    heading.classList.add('my-4', 'text-center');
+
+    //Iterar sobre el array de pedidos
+
+    //Agregar a los elementos padre
+    mesa.appendChild(mesaSpan);
+    hora.appendChild(horaSpan);
+
+    //Agregar a la seccion de resumen
+    resumen.appendChild(mesa);
+    resumen.appendChild(hora);
+    resumen.appendChild(heading);
+
+    contenido.appendChild(resumen);
+}
+
+function limpiarHTML() {
+
+    const contenido = document.querySelector('#resumen .contenido');
+
+    while (contenido.firstChild) {
+        contenido.removeChild(contenido.firstChild);
+    }
 
 }
